@@ -1,11 +1,13 @@
 import React, {Component} from 'react';
-import {View, Text, TextInput, Alert, Clipboard} from 'react-native';
+import {View, Text, TextInput, Alert, Clipboard, Switch} from 'react-native';
 import Header from '../component/header2';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import {Icon} from 'react-native-eva-icons';
-import {COLORS} from '../config';
+import {COLORS, networkError} from '../config';
 
 import ModalDropdown from 'react-native-modal-dropdown';
+
+import CryptoJS from 'react-native-crypto-js';
 
 import axios from 'axios';
 const serverURL = 'https://agaoglutalha.me/api2';
@@ -27,6 +29,9 @@ export default class profile extends Component {
     passwordEye: true,
     editable: false,
     customFolder: false,
+    secondEncryption: false,
+    secondPassword: '',
+    wrongPin: false,
   };
 
   componentDidMount = async () => {
@@ -38,7 +43,11 @@ export default class profile extends Component {
         folder: data.folder,
         name: data.name,
         username: data.username,
-        password: data.password,
+        password: data.secondEncryption
+          ? this.showPassword(data.password)
+          : data.password,
+        secondEncryption: data.secondEncryption,
+        secondPassword: data.secondEncryption ? data.password : '',
       });
     } else {
       this.setState({editable: true});
@@ -55,13 +64,19 @@ export default class profile extends Component {
             token: global.token,
             username: this.state.username,
             accountName: this.state.name,
-            password: this.state.password,
+            password: this.state.secondEncryption
+              ? this.state.secondPassword
+              : this.state.password,
             folder: this.state.folder,
+            secondEncryption: this.state.secondEncryption,
           })
           .then(Response =>
             Response.data.status == 'saved' ? this.response() : alert('Error'),
           )
-          .catch(error => console.warn('error', error))
+          .catch(error => {
+            networkError(error);
+            console.warn('error', error);
+          })
       : alert('All the boxes should be filled');
   };
 
@@ -74,11 +89,13 @@ export default class profile extends Component {
       .then(Response =>
         Response.data.status == 'deleted' ? this.response() : alert('Error'),
       )
-      .catch(error => console.warn('error', error));
+      .catch(error => {
+        networkError(error);
+        console.warn('error', error);
+      });
   };
 
   response = () => {
-    //TODO save local database
     alert('succesfully');
     this.props.navigation.navigate('Home');
   };
@@ -86,12 +103,48 @@ export default class profile extends Component {
   generatePassword = () => {
     var length = 16,
       charset =
-        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_?*',
       retVal = '';
     for (var i = 0, n = charset.length; i < length; ++i) {
       retVal += charset.charAt(Math.floor(Math.random() * n));
     }
     this.setState({password: retVal});
+  };
+
+  encrypt = () => {
+    if (global.pin != null) {
+      this.setState({
+        secondPassword: CryptoJS.AES.encrypt(
+          this.state.password,
+          global.pin,
+        ).toString(),
+        secondEncryption: true,
+      });
+    } else {
+      alert('You need to set a pin.');
+    }
+  };
+
+  undoEncrypt = () => {
+    !this.state.wrongPin
+      ? this.setState({secondEncryption: false})
+      : alert("You don't know pin");
+  };
+
+  showPassword = data => {
+    try {
+      let bytes = CryptoJS.AES.decrypt(data, global.pin);
+      let originalText = bytes.toString(CryptoJS.enc.Utf8);
+      if (originalText == '') {
+        alert('Wrong Pin');
+        this.setState({wrongPin: true});
+      }
+      return originalText;
+    } catch (error) {
+      alert('Wrong Pin');
+      this.setState({wrongPin: true});
+      return '';
+    }
   };
 
   render() {
@@ -151,14 +204,22 @@ export default class profile extends Component {
               : null
           }
         />
-        <View style={{flex: 1}}>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: global.darkMode
+              ? COLORS.darkModeSecondColor
+              : null,
+          }}>
           <View
             style={{
-              borderWidth: 0.5,
+              borderWidth: global.darkMode ? 0 : 0.5,
               borderColor: 'black',
               marginTop: 16,
               marginHorizontal: 8,
               padding: 8,
+              backgroundColor: global.darkMode ? COLORS.darkModeColor3 : null,
+              borderRadius: 20,
             }}>
             <View
               style={{
@@ -167,7 +228,9 @@ export default class profile extends Component {
                 marginTop: 8,
                 justifyContent: 'space-between',
               }}>
-              <Text>Folder:</Text>
+              <Text style={{color: global.darkMode ? 'white' : null}}>
+                Folder:
+              </Text>
               {this.state.editable && !this.state.customFolder ? (
                 <ModalDropdown
                   style={{
@@ -175,8 +238,13 @@ export default class profile extends Component {
                     borderWidth: 1,
                     alignSelf: 'center',
                     width: 'auto',
+                    borderColor: global.darkMode ? 'white' : null,
                   }}
-                  textStyle={{fontSize: 15, textAlign: 'center'}}
+                  textStyle={{
+                    fontSize: 15,
+                    textAlign: 'center',
+                    color: global.darkMode ? 'white' : null,
+                  }}
                   dropdownTextStyle={{fontSize: 15, textAlign: 'center'}}
                   onSelect={item => {
                     this.props.navigation.getParam('folders').slice(1)[item] ==
@@ -196,6 +264,7 @@ export default class profile extends Component {
                   onChangeText={text => this.setState({folder: text})}
                   placeholder={'ex: Social'}
                   editable={this.state.customFolder}
+                  style={{color: global.darkMode ? 'white' : null}}
                 />
               )}
             </View>
@@ -205,12 +274,16 @@ export default class profile extends Component {
                 alignItems: 'center',
                 marginTop: 8,
               }}>
-              <Text>Platform:</Text>
+              <Text style={{color: global.darkMode ? 'white' : null}}>
+                Platform:
+              </Text>
               <TextInput
                 value={this.state.name}
                 onChangeText={text => this.setState({name: text})}
                 placeholder={'ex: Twitter'}
                 editable={this.state.editable}
+                style={{color: global.darkMode ? 'white' : null}}
+                placeholderTextColor={global.darkMode ? 'grey' : null}
               />
             </View>
             <View
@@ -221,12 +294,16 @@ export default class profile extends Component {
                 justifyContent: 'space-between',
               }}>
               <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                <Text>Username:</Text>
+                <Text style={{color: global.darkMode ? 'white' : null}}>
+                  Username:
+                </Text>
                 <TextInput
                   value={this.state.username}
                   onChangeText={text => this.setState({username: text})}
                   placeholder={'ex: crayzboy'}
                   editable={this.state.editable}
+                  style={{color: global.darkMode ? 'white' : null}}
+                  placeholderTextColor={global.darkMode ? 'grey' : null}
                 />
               </View>
               <TouchableOpacity
@@ -234,7 +311,12 @@ export default class profile extends Component {
                   Clipboard.setString(this.state.username);
                   alert('Copied');
                 }}>
-                <Icon name={'clipboard'} width={24} height={24} fill="black" />
+                <Icon
+                  name={'clipboard'}
+                  width={24}
+                  height={24}
+                  fill={global.darkMode ? 'white' : 'black'}
+                />
               </TouchableOpacity>
             </View>
             <View
@@ -250,13 +332,17 @@ export default class profile extends Component {
                   alignSelf: 'flex-start',
                   alignItems: 'center',
                 }}>
-                <Text>Password:</Text>
+                <Text style={{color: global.darkMode ? 'white' : null}}>
+                  Password:
+                </Text>
                 <TextInput
                   value={this.state.password}
                   onChangeText={text => this.setState({password: text})}
                   placeholder={'not ex: 1234'}
                   editable={this.state.editable}
                   secureTextEntry={this.state.passwordEye}
+                  style={{color: global.darkMode ? 'white' : null}}
+                  placeholderTextColor={global.darkMode ? 'grey' : null}
                 />
               </View>
               <View
@@ -274,7 +360,7 @@ export default class profile extends Component {
                       name={'refresh'}
                       width={24}
                       height={24}
-                      fill="black"
+                      fill={global.darkMode ? 'white' : 'black'}
                     />
                   </TouchableOpacity>
                 ) : null}
@@ -288,7 +374,7 @@ export default class profile extends Component {
                     name={'clipboard'}
                     width={24}
                     height={24}
-                    fill="black"
+                    fill={global.darkMode ? 'white' : 'black'}
                   />
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -299,11 +385,45 @@ export default class profile extends Component {
                     name={this.state.passwordEye ? 'eye' : 'eye-off'}
                     width={24}
                     height={24}
-                    fill="black"
+                    fill={global.darkMode ? 'white' : 'black'}
                   />
                 </TouchableOpacity>
               </View>
             </View>
+            {this.state.editable ? (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  marginTop: 8,
+                  justifyContent: 'space-between',
+                }}>
+                <Text style={{color: global.darkMode ? 'white' : null}}>
+                  Second Encryption:
+                </Text>
+                <Switch
+                  trackColor={{true: COLORS.darkModeOrange, false: 'grey'}}
+                  onValueChange={() => {
+                    !this.state.secondEncryption
+                      ? Alert.alert(
+                          'Do you want to encrypt password with your pin?',
+                          "If you forget your pin somehow, you can't restore back.",
+                          [
+                            {
+                              text: 'Cancel',
+                              onPress: () => console.log('Cancel Pressed'),
+                              style: 'cancel',
+                            },
+                            {text: 'OK', onPress: () => this.encrypt()},
+                          ],
+                          {cancelable: false},
+                        )
+                      : this.undoEncrypt();
+                  }}
+                  value={this.state.secondEncryption}
+                />
+              </View>
+            ) : null}
           </View>
           <View
             style={{
@@ -320,7 +440,7 @@ export default class profile extends Component {
               }
               style={{
                 backgroundColor: global.darkMode
-                  ? COLORS.darkModeColor
+                  ? COLORS.darkModeColor3
                   : COLORS.mainColor,
                 borderRadius: 20,
                 padding: 16,

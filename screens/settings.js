@@ -36,6 +36,7 @@ export default class settings extends Component {
     await AsyncStorage.setItem('pin', this.state.pin);
     this.setState({pinModal: false});
     this.setState({isPin: true});
+    global.pin = this.state.pin;
   };
 
   render() {
@@ -50,7 +51,13 @@ export default class settings extends Component {
           }}
           onPressLeft={() => this.props.navigation.goBack()}
         />
-        <View style={{flex: 1}}>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: global.darkMode
+              ? COLORS.darkModeSecondColor
+              : null,
+          }}>
           <View
             style={{
               justifyContent: 'space-between',
@@ -59,9 +66,15 @@ export default class settings extends Component {
               marginHorizontal: 8,
               borderBottomWidth: 0.5,
               alignItems: 'center',
+              backgroundColor: global.darkMode ? COLORS.darkModeColor3 : null,
+              marginVertical: global.darkMode ? 8 : 0,
+              borderRadius: global.darkMode ? 5 : 0,
             }}>
-            <Text>Dark Mode:</Text>
+            <Text style={{color: global.darkMode ? 'white' : null}}>
+              Dark Mode:
+            </Text>
             <Switch
+              trackColor={{true: COLORS.darkModeOrange, false: 'grey'}}
               onValueChange={async () => {
                 this.setState({darkMode: !this.state.darkMode});
                 await AsyncStorage.setItem(
@@ -82,9 +95,15 @@ export default class settings extends Component {
               marginHorizontal: 8,
               borderBottomWidth: 0.5,
               alignItems: 'center',
+              backgroundColor: global.darkMode ? COLORS.darkModeColor3 : null,
+              marginVertical: global.darkMode ? 8 : 0,
+              borderRadius: global.darkMode ? 5 : 0,
             }}>
-            <Text>Pin Security:</Text>
+            <Text style={{color: global.darkMode ? 'white' : null}}>
+              Pin Security:
+            </Text>
             <Switch
+              trackColor={{true: COLORS.darkModeOrange, false: 'grey'}}
               onValueChange={() => {
                 this.state.isPin
                   ? Alert.alert(
@@ -122,9 +141,15 @@ export default class settings extends Component {
               marginHorizontal: 8,
               borderBottomWidth: 0.5,
               alignItems: 'center',
+              backgroundColor: global.darkMode ? COLORS.darkModeColor3 : null,
+              marginVertical: global.darkMode ? 8 : 0,
+              borderRadius: global.darkMode ? 5 : 0,
             }}>
-            <Text>Option3:</Text>
+            <Text style={{color: global.darkMode ? 'white' : null}}>
+              Option3:
+            </Text>
             <Switch
+              trackColor={{true: COLORS.darkModeOrange, false: 'grey'}}
               onValueChange={() =>
                 this.setState({option3: !this.state.option3})
               }
@@ -139,8 +164,13 @@ export default class settings extends Component {
               marginHorizontal: 8,
               borderBottomWidth: 0.5,
               alignItems: 'center',
+              backgroundColor: global.darkMode ? COLORS.darkModeColor3 : null,
+              marginVertical: global.darkMode ? 8 : 0,
+              borderRadius: global.darkMode ? 5 : 0,
             }}>
-            <Text>Log Out</Text>
+            <Text style={{color: global.darkMode ? 'white' : null}}>
+              Log Out
+            </Text>
             <TouchableOpacity
               onPress={() =>
                 Alert.alert(

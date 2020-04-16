@@ -60,7 +60,7 @@ export default class SignUp extends React.Component {
           flex: 1,
           justifyContent: 'center',
           backgroundColor: global.darkMode
-            ? COLORS.darkModeColor
+            ? COLORS.darkModeSecondColor
             : COLORS.mainColor,
         }}>
         <View style={{justifyContent: 'center', alignSelf: 'center'}}>

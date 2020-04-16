@@ -10,6 +10,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import ModalDropdown from 'react-native-modal-dropdown';
 
 import axios from 'axios';
+import {COLORS} from '../config';
 const serverURL = 'https://agaoglutalha.me/api2';
 const http = axios.create({
   timeout: 1000,
@@ -87,7 +88,7 @@ export default class Home extends Component {
         name={'question-mark-circle-outline'}
         width={48}
         height={48}
-        fill="black"
+        fill={global.darkMode ? 'white' : 'black'}
       />
     );
   };
@@ -104,8 +105,12 @@ export default class Home extends Component {
           justifyContent: 'space-around',
         }}>
         {this.renderIcon(data.name)}
-        <Text style={{padding: 8}}>{data.name}</Text>
-        <Text style={{padding: 8}}>{data.username}</Text>
+        <Text style={{padding: 8, color: global.darkMode ? 'white' : null}}>
+          {data.name}
+        </Text>
+        <Text style={{padding: 8, color: global.darkMode ? 'white' : null}}>
+          {data.username}
+        </Text>
         <TouchableOpacity
           onPress={() => {
             let folders = this.state.folders;
@@ -119,7 +124,7 @@ export default class Home extends Component {
             name={'chevron-right-outline'}
             width={48}
             height={48}
-            fill="black"
+            fill={global.darkMode ? 'white' : 'black'}
           />
         </TouchableOpacity>
       </View>
@@ -158,25 +163,44 @@ export default class Home extends Component {
             });
           }}
         />
-        <View style={{flex: 1}}>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: global.darkMode
+              ? COLORS.darkModeSecondColor
+              : null,
+          }}>
           <View
             style={{
               flexDirection: 'row',
               justifyContent: 'space-between',
               alignItems: 'center',
               padding: 16,
-              borderBottomWidth: 0.5,
+              backgroundColor: global.darkMode ? COLORS.darkModeColor3 : null,
+              margin: 8,
+              borderRadius: 20,
             }}>
-            <Text style={{alignSelf: 'center'}}>Folder:</Text>
+            <Text
+              style={{
+                alignSelf: 'center',
+                color: global.darkMode ? 'white' : null,
+              }}>
+              Folder:
+            </Text>
             <ModalDropdown
               style={{
                 padding: 8,
                 borderWidth: 1,
                 alignSelf: 'center',
                 width: 100,
+                borderColor: global.darkMode ? 'white' : null,
               }}
               defaultValue={'All'}
-              textStyle={{fontSize: 15, textAlign: 'center'}}
+              textStyle={{
+                fontSize: 15,
+                textAlign: 'center',
+                color: global.darkMode ? 'white' : null,
+              }}
               dropdownTextStyle={{fontSize: 15, textAlign: 'center'}}
               defaultIndex={0}
               onSelect={item => this.selectedData(this.state.folders[item])}
@@ -184,6 +208,11 @@ export default class Home extends Component {
             />
           </View>
           <FlatList
+            style={{
+              backgroundColor: global.darkMode ? COLORS.darkModeColor3 : null,
+              margin: 8,
+              borderRadius: 20,
+            }}
             data={this.state.selectedData}
             renderItem={({item}) => this.renderAccount(item)}
             keyExtractor={item => item.name}

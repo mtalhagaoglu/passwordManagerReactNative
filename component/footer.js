@@ -12,6 +12,7 @@ export default class footer extends Component {
           flex: 1,
           justifyContent: 'space-around',
           alignItems: 'center',
+          backgroundColor: global.darkMode ? COLORS.darkModeColor3 : null,
         }}>
         <TouchableOpacity onPress={() => this.props.onPress('Home')}>
           <Icon
@@ -22,7 +23,7 @@ export default class footer extends Component {
             fill={
               this.props.selected == 'home'
                 ? global.darkMode
-                  ? COLORS.darkModeColor
+                  ? COLORS.darkModeOrange
                   : COLORS.mainColor
                 : 'grey'
             }
@@ -36,7 +37,7 @@ export default class footer extends Component {
             fill={
               this.props.selected == 'settings'
                 ? global.darkMode
-                  ? COLORS.darkModeColor
+                  ? COLORS.darkModeOrange
                   : COLORS.mainColor
                 : 'grey'
             }
